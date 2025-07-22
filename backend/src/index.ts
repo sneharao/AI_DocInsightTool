@@ -1,0 +1,8 @@
+// Main entry point for the backend application
+import app from './App';
+
+const port = process.env.PORT || 3000;
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
