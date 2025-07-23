@@ -25,7 +25,6 @@ This backend application provides the API endpoints and logic for summarizing an
 8.  [Folder Structure](#folder-structure)
 9.  [Dependencies](#dependencies)
 10. [Contributing](#contributing)
-11. [License](#license)
 
 ## Project Overview
 
@@ -201,3 +200,116 @@ This section details the AWS services you need to configure for the backend to f
     *   **Add additional attributes summary(String) and translations(String)**
     *   Leave other settings as default. On-demand is good
     *   Click "
+
+## Configuration
+
+The application uses environment variables for configuration. You should create a `.env` file in the project root directory and set the following variables:
+
+
+## Deployment
+
+To deploy the application to AWS, you'll need to:
+
+1.  **Build the project:**
+
+    ```bash
+    npm run build
+    ```
+
+2.  **Package the code:** Create a ZIP file containing the contents of the `dist` directory and the `node_modules` directory at the root.
+
+    ```bash
+    cd dist
+    zip -r9 ../lambda.zip *
+    cd ..
+    zip -r9 lambda.zip node_modules
+    ```
+
+3.  **Upload the ZIP file to your Lambda function:**
+
+    *   Go to the AWS Lambda console.
+    *   Select your function.
+    *   Go to the "Code" tab.
+    *   Upload the ZIP file.
+
+## Common Issues and Solutions (Troubleshooting)
+
+This section documents the common issues encountered during the development process and their solutions.
+
+*   **`Runtime.ImportModuleError: Error: Cannot find module 'handler'`**
+    *   **Cause:** This usually means that Lambda can't find the handler file or the handler function within the file.
+    *   **Solution:**
+        *   Verify that the handler setting in the Lambda function configuration is correct (e.g., `handler.handler`).
+        *   Ensure that the ZIP file has the correct structure, with `handler.js` and other necessary files at the root.
+        *   Make sure node_modules is in the zip
+*   **`InvalidAccessKeyId: The AWS Access Key Id you provided does not exist in our records.`**
+    *   **Cause:** This means that the AWS credentials being used by your Lambda function are invalid or don't have the necessary permissions.
+    *   **Solution:**
+        *   The code sets credential with variables. if the crediential and variables doesn't match the error occurs
+        *   To address the issue the explicit variables was removed by keeping the IAM role only
+*   **`NoSuchKey: The specified key does not exist.`**
+    *   **Cause:** The Lambda function is trying to access an object in S3 that doesn't exist.
+    *   **Solution:**
+        *   Verify file names in S3 objects
+        *   SQS queue was purged after deleting, new S3 objects created messages has new objects but old one had old keys to objects which had already been dropped
+*       **Data was not saving properly, reason was schema set up was incorrect. A new Database with appropriate Primary key and attributes were set**
+            
+
+## API Endpoints
+
+*   `POST /upload`: Upload a document (PDF or DOCX).
+    *   Request body: `multipart/form-data` with a `document` file field.
+    *   Response:
+        *   200 OK: `{ message: "Document uploaded successfully.", documentId: "unique-document-id" }`
+        *   400 Bad Request: `{ error: "No document uploaded." }`
+        *   500 Internal Server Error: `{ error: "Failed to upload document." }`
+*   `GET /summary/{documentId}`: Retrieve the summary for a document.
+    *   Path parameters:
+        *   `documentId`: The unique ID of the document.
+    *   Response:
+        *   200 OK: `{ summary: "Document summary text" }`
+        *   404 Not Found: `{ message: "Summary not found" }`
+        *   500 Internal Server Error: `{ error: "Internal Server Error" }`
+
+## Folder Structure
+document-summarizer-backend/
+├── src/
+│ ├── app.ts # Express.js application and API endpoints
+│ ├── handler.ts # Lambda function handler
+│ ├── processDocument.ts # Document processing logic
+│ ├── aws.ts # AWS SDK configuration
+│ └── ... # Other source files
+├── dist/ # Compiled JavaScript code
+├── node_modules/ # Node.js dependencies
+├── package.json # Project metadata and dependencies
+├── tsconfig.json # TypeScript compiler configuration
+├── README.md # Project documentation
+└── .env # Environment variables (not committed to Git)
+
+
+
+## Dependencies
+
+*   `aws-sdk`
+*   `express`
+*   `serverless-http`
+*   `typescript`
+*   `ts-node`
+*   `@types/aws-lambda`
+*   `@types/express`
+*   `multer`
+*   `pdf-parse`
+*   `docx`
+*   `axios`
+*   `dotenv`
+*   `uuid`
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1.  Fork the repository.
+2.  Create a new branch for your feature or bug fix.
+3.  Make your changes and commit them with descriptive commit messages.
+4.  Push your changes to your fork.
+5.  Submit a pull request.

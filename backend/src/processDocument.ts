@@ -127,3 +127,57 @@ export const processDocument = async (documentId: string, filename: string): Pro
     throw error;
   }
 };
+
+// New function to retrieve a summary from DynamoDB
+export const getSummary = async (documentId: string): Promise<string | undefined> => {
+  const tableName = process.env.DYNAMODB_TABLE_NAME;
+  if (!tableName) {
+    throw new Error('DYNAMODB_TABLE_NAME is not set in environment variables.');
+  }
+
+  const params = {
+    TableName: tableName,
+    Key: {
+      documentId: documentId,
+    },
+  };
+
+  try {
+    const data = await dynamoDb.get(params).promise(); // Use dynamoDb.get to retrieve an item
+    if (data.Item) {
+      return data.Item.summary; // Return the summary if the item exists
+    } else {
+      return undefined; // Return undefined if the item doesn't exist
+    }
+  } catch (error) {
+    console.error('Error getting summary from DynamoDB:', error);
+    throw error;
+  }
+};
+
+// New function to retrieve a translation from DynamoDB
+export const getTranslation = async (documentId: string, language: string): Promise<string | undefined> => {
+  const tableName = process.env.DYNAMODB_TABLE_NAME;
+  if (!tableName) {
+    throw new Error('DYNAMODB_TABLE_NAME is not set in environment variables.');
+  }
+
+  const params = {
+    TableName: tableName,
+    Key: {
+      documentId: documentId,
+    },
+  };
+
+  try {
+    const data = await dynamoDb.get(params).promise(); // Use dynamoDb.get to retrieve an item
+    if (data.Item) {
+      return data.Item.translation; // Return the translation if the item exists
+    } else {
+      return undefined; // Return undefined if the item doesn't exist
+    }
+  } catch (error) {
+    console.error('Error getting translation from DynamoDB:', error);
+    throw error;
+  }
+};
